@@ -8,28 +8,31 @@
   <meta name="theme-color" content="#7c3aed">
   <style>
     :root{--bg:#0f1724;--card:#111827;--muted:#9ca3af;--accent:#7c3aed}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071029 0%,#0f1724 100%);color:#e6eef8;margin:0;padding:20px}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071029 0%,#0f1724 100%);color:#e6eef8;margin:0;padding:20px;min-height:100vh}
     .container{max-width:1100px;margin:0 auto}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     h1{margin:0;font-size:20px}
+    h2{font-size:16px;margin-top:0;margin-bottom:12px}
     .grid{display:grid;grid-template-columns:1fr 380px;gap:16px;margin-top:16px}
     .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit}
-    .row{display:flex;gap:8px}
+    input,select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:inherit;box-sizing:border-box}
+    .row{display:flex;gap:8px;margin-bottom:10px}
     .small{width:120px}
-    button{background:var(--accent);border:none;color:white;padding:8px 10px;border-radius:10px;cursor:pointer}
+    button{background:var(--accent);border:none;color:white;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:500}
     table{width:100%;border-collapse:collapse;margin-top:8px}
     th,td{padding:8px;text-align:left;border-bottom:1px dashed rgba(255,255,255,0.03);font-size:13px}
     .muted{color:var(--muted)}
-    .summary{display:flex;gap:10px;margin-top:8px}
+    .summary{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
     .pill{padding:10px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));min-width:120px}
     .danger{background:linear-gradient(180deg,rgba(255,20,60,0.08),rgba(255,20,60,0.03))}
     .success{background:linear-gradient(180deg,rgba(16,185,129,0.06),rgba(16,185,129,0.03))}
     .controls{display:flex;gap:8px;flex-wrap:wrap}
-    .small-btn{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+    .small-btn{padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);cursor:pointer;color:inherit;font-size:13px}
     footer{margin-top:20px;text-align:center;color:var(--muted);font-size:13px}
-    @media(max-width:900px){.grid{grid-template-columns:1fr;}.small{width:100%}}
+    .delete-btn{color:#ef4444;cursor:pointer;background:none;border:none;padding:4px;font-size:12px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.small{width:100%}}
+    #importFile{display:none}
   </style>
 </head>
 <body>
@@ -45,22 +48,387 @@
 
   <!-- CONTENIDO PRINCIPAL -->
   <div class="grid">
-    <!-- ... resto del contenido igual que antes ... -->
+    <!-- Sección principal para agregar movimientos y listarlos -->
+    <div>
+      <div class="card">
+        <h2>Agregar Movimiento</h2>
+        <form id="transactionForm">
+          <label>Descripción</label>
+          <input type="text" id="description" required placeholder="Ej: Pago nómina">
+          
+          <div class="row">
+            <div>
+              <label>Monto</label>
+              <input type="number" id="amount" required placeholder="0.00" step="0.01">
+            </div>
+            <div>
+              <label>Tipo</label>
+              <select id="type">
+                <option value="ingreso">Ingreso</option>
+                <option value="gasto">Gasto</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div>
+              <label>Fecha</label>
+              <input type="date" id="date">
+            </div>
+            <div>
+              <label>Categoría</label>
+              <select id="category">
+                <option value="nómina">Nómina</option>
+                <option value="freelance">Freelance</option>
+                <option value="otros">Otros ingresos</option>
+                <option value="comida">Comida</option>
+                <option value="transporte">Transporte</option>
+                <option value="ocio">Ocio</option>
+                <option value="servicios">Servicios</option>
+                <option value="otros-gastos">Otros gastos</option>
+              </select>
+            </div>
+          </div>
+          
+          <button type="submit">Agregar Movimiento</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Movimientos Registrados</h2>
+        <table id="transactionsTable">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th>Monto</th>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Categoría</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los movimientos se insertarán aquí dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Panel lateral con resumen -->
+    <div>
+      <div class="card">
+        <h2>Resumen del Mes</h2>
+        <div class="summary">
+          <div class="pill">
+            <div class="muted">Balance Total</div>
+            <div id="balance">0,00 €</div>
+          </div>
+          <div class="pill success">
+            <div class="muted">Ingresos</div>
+            <div id="income">0,00 €</div>
+          </div>
+          <div class="pill danger">
+            <div class="muted">Gastos</div>
+            <div id="expense">0,00 €</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Filtros y Opciones</h2>
+        <div class="row">
+          <input type="month" id="monthFilter" class="small">
+          <select id="categoryFilter">
+            <option value="">Todas las categorías</option>
+            <option value="nómina">Nómina</option>
+            <option value="freelance">Freelance</option>
+            <option value="otros">Otros ingresos</option>
+            <option value="comida">Comida</option>
+            <option value="transporte">Transporte</option>
+            <option value="ocio">Ocio</option>
+            <option value="servicios">Servicios</option>
+            <option value="otros-gastos">Otros gastos</option>
+          </select>
+        </div>
+        <button id="applyFilters" class="small-btn">Aplicar Filtros</button>
+      </div>
+    </div>
   </div>
 
   <footer>Prototipo — funcionalidad básica con persistencia local (localStorage) y soporte PWA. Puedes pedirme adaptaciones: CSV, PDF o sincronización en la nube.</footer>
 </div>
 
+<input type="file" id="importFile" accept=".json">
+
 <script>
-// Registrar service worker para PWA
+// Registrar service worker para PWA - CORREGIDO: usa sv.js en lugar de sw.js
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").then(() => console.log("Service Worker registrado."));
+  navigator.serviceWorker.register("sv.js").then(() => {
+    console.log("Service Worker registrado correctamente.");
+  }).catch(error => {
+    console.log("Error registrando Service Worker:", error);
+  });
 }
 </script>
 
 <script>
-// === AQUÍ VA TODO EL SCRIPT DE FUNCIONALIDAD QUE YA TENÍAS ===
-// (por claridad no lo repito, es el mismo código JS del prototipo anterior)
+// === CÓDIGO PRINCIPAL DE LA APLICACIÓN ===
+
+// Variables globales
+let transactions = [];
+const transactionForm = document.getElementById('transactionForm');
+const transactionsTable = document.getElementById('transactionsTable').getElementsByTagName('tbody')[0];
+const balanceElement = document.getElementById('balance');
+const incomeElement = document.getElementById('income');
+const expenseElement = document.getElementById('expense');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+const clearBtn = document.getElementById('clearBtn');
+const applyFilters = document.getElementById('applyFilters');
+const monthFilter = document.getElementById('monthFilter');
+const categoryFilter = document.getElementById('categoryFilter');
+
+// Inicializar la aplicación
+document.addEventListener('DOMContentLoaded', function() {
+  // Cargar transacciones desde localStorage
+  loadTransactions();
+  
+  // Establecer fecha actual por defecto
+  const today = new Date();
+  document.getElementById('date').valueAsDate = today;
+  
+  // Establecer mes actual en el filtro
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  monthFilter.value = `${year}-${month}`;
+  
+  // Renderizar transacciones
+  renderTransactions();
+  updateSummary();
+});
+
+// Cargar transacciones desde localStorage
+function loadTransactions() {
+  const storedTransactions = localStorage.getItem('transactions');
+  if (storedTransactions) {
+    transactions = JSON.parse(storedTransactions);
+  }
+}
+
+// Guardar transacciones en localStorage
+function saveTransactions() {
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+}
+
+// Manejar envío del formulario
+transactionForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const description = document.getElementById('description').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+  const type = document.getElementById('type').value;
+  const date = document.getElementById('date').value;
+  const category = document.getElementById('category').value;
+  
+  if (!description || isNaN(amount) || amount <= 0 || !date) {
+    alert('Por favor, completa todos los campos correctamente.');
+    return;
+  }
+  
+  const transaction = {
+    id: Date.now(), // ID único basado en timestamp
+    description,
+    amount,
+    type,
+    date,
+    category
+  };
+  
+  transactions.push(transaction);
+  saveTransactions();
+  renderTransactions();
+  updateSummary();
+  
+  // Resetear formulario
+  transactionForm.reset();
+  document.getElementById('date').valueAsDate = new Date();
+});
+
+// Renderizar la lista de transacciones
+function renderTransactions() {
+  // Limpiar tabla
+  transactionsTable.innerHTML = '';
+  
+  // Obtener valores de filtro
+  const filterMonth = monthFilter.value;
+  const filterCategory = categoryFilter.value;
+  
+  // Aplicar filtros
+  let filteredTransactions = transactions;
+  
+  if (filterMonth) {
+    filteredTransactions = filteredTransactions.filter(t => t.date.startsWith(filterMonth));
+  }
+  
+  if (filterCategory) {
+    filteredTransactions = filteredTransactions.filter(t => t.category === filterCategory);
+  }
+  
+  // Ordenar por fecha (más reciente primero)
+  filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  // Mostrar transacciones
+  if (filteredTransactions.length === 0) {
+    const row = transactionsTable.insertRow();
+    const cell = row.insertCell(0);
+    cell.colSpan = 6;
+    cell.textContent = 'No hay movimientos registrados';
+    cell.style.textAlign = 'center';
+    cell.style.padding = '20px';
+    cell.className = 'muted';
+    return;
+  }
+  
+  filteredTransactions.forEach(transaction => {
+    const row = transactionsTable.insertRow();
+    
+    row.insertCell(0).textContent = transaction.description;
+    row.insertCell(1).textContent = `${transaction.amount.toFixed(2)} €`;
+    
+    const typeCell = row.insertCell(2);
+    typeCell.textContent = transaction.type === 'ingreso' ? 'Ingreso' : 'Gasto';
+    typeCell.style.color = transaction.type === 'ingreso' ? '#10b981' : '#ef4444';
+    
+    row.insertCell(3).textContent = formatDate(transaction.date);
+    row.insertCell(4).textContent = getCategoryName(transaction.category);
+    
+    const actionsCell = row.insertCell(5);
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Eliminar';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.onclick = () => deleteTransaction(transaction.id);
+    actionsCell.appendChild(deleteBtn);
+  });
+}
+
+// Formatear fecha para mostrar
+function formatDate(dateString) {
+  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+  return new Date(dateString).toLocaleDateString('es-ES', options);
+}
+
+// Obtener nombre de categoría para mostrar
+function getCategoryName(categoryKey) {
+  const categories = {
+    'nómina': 'Nómina',
+    'freelance': 'Freelance',
+    'otros': 'Otros ingresos',
+    'comida': 'Comida',
+    'transporte': 'Transporte',
+    'ocio': 'Ocio',
+    'servicios': 'Servicios',
+    'otros-gastos': 'Otros gastos'
+  };
+  
+  return categories[categoryKey] || categoryKey;
+}
+
+// Actualizar resumen con totals
+function updateSummary() {
+  let totalIncome = 0;
+  let totalExpense = 0;
+  
+  transactions.forEach(transaction => {
+    if (transaction.type === 'ingreso') {
+      totalIncome += transaction.amount;
+    } else {
+      totalExpense += transaction.amount;
+    }
+  });
+  
+  const balance = totalIncome - totalExpense;
+  
+  balanceElement.textContent = `${balance.toFixed(2)} €`;
+  incomeElement.textContent = `${totalIncome.toFixed(2)} €`;
+  expenseElement.textContent = `${totalExpense.toFixed(2)} €`;
+  
+  // Colorear el balance según si es positivo o negativo
+  balanceElement.style.color = balance >= 0 ? '#10b981' : '#ef4444';
+}
+
+// Eliminar transacción
+function deleteTransaction(id) {
+  if (confirm('¿Estás seguro de que quieres eliminar este movimiento?')) {
+    transactions = transactions.filter(t => t.id !== id);
+    saveTransactions();
+    renderTransactions();
+    updateSummary();
+  }
+}
+
+// Exportar datos a JSON
+exportBtn.addEventListener('click', function() {
+  const dataStr = JSON.stringify(transactions, null, 2);
+  const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+  
+  const exportFileDefaultName = `presupuesto-${new Date().toISOString().slice(0,10)}.json`;
+  
+  const linkElement = document.createElement('a');
+  linkElement.setAttribute('href', dataUri);
+  linkElement.setAttribute('download', exportFileDefaultName);
+  linkElement.click();
+});
+
+// Importar datos desde JSON
+importBtn.addEventListener('click', function() {
+  importFile.click();
+});
+
+importFile.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      
+      if (Array.isArray(importedData)) {
+        if (confirm(`¿Importar ${importedData.length} movimientos? Se reemplazarán los datos actuales.`)) {
+          transactions = importedData;
+          saveTransactions();
+          renderTransactions();
+          updateSummary();
+          alert('Datos importados correctamente.');
+        }
+      } else {
+        alert('El archivo no contiene datos válidos.');
+      }
+    } catch (error) {
+      alert('Error al importar el archivo: ' + error.message);
+    }
+  };
+  reader.readAsText(file);
+  
+  // Resetear input file
+  importFile.value = '';
+});
+
+// Borrar todos los datos
+clearBtn.addEventListener('click', function() {
+  if (confirm('¿Estás seguro de que quieres borrar todos los datos? Esta acción no se puede deshacer.')) {
+    transactions = [];
+    saveTransactions();
+    renderTransactions();
+    updateSummary();
+  }
+});
+
+// Aplicar filtros
+applyFilters.addEventListener('click', function() {
+  renderTransactions();
+});
 </script>
 </body>
 </html>
